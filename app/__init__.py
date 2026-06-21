@@ -74,8 +74,42 @@ def show_creature_form():
 #-----------------------------------------------------------
 @app.post("/creature/new")
 def process_creature_form():
-   print(request.form)
+    #Get the form data
+    species = request.form.get("species", "unkown").strip()
+    name = request.form.get("name", "unkown").strip()
+    # Connect to the DB
+    with connect_db() as db:
+        sql = """
+            INSERT INTO creatures (species, name)
+            VALUES (?, ?)
+        """
+        params = (species, name)
 
+        # Run the query
+        db.execute(sql, params)
+
+        flash(f"Creature {name} added successfully")
+        # We're done, so back to the list
+        return redirect("/creatures")
+
+
+#-----------------------------------------------------------
+# Creature deletion - Delete a creature via ID
+#-----------------------------------------------------------
+@app.get("/creature/<int:id>/delete")
+def delete_a_creature(id):
+    with connect_db() as db:
+        # Delete the creature using its ID
+        sql = """
+            DELETE FROM creatures
+            WHERE id=?
+        """
+        params = (id,)
+        db.execute(sql, params)
+
+        #Go back to creature list
+        flash("Creature deleted", "success")
+        return redirect("/creatures")
 #===========================================================
 # Configure the app
 #===========================================================
